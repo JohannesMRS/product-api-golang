@@ -35,6 +35,7 @@ func main() {
 	{
 		api.GET("/products", productController.GetProducts)
 		api.POST("/products", productController.CreateProduct)
+		api.PUT("/products/:id", productController.UpdateProduct)
 	}
 
 	port := os.Getenv("PORT")

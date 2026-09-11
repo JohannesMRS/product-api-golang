@@ -13,3 +13,8 @@ type CreateProductInput struct {
 	Name  string `json:"name" binding:"required"`
 	Price int    `json:"price" binding:"required"`
 }
+
+type UpdateProductInput struct {
+	Name  string `json:"name" binding:"required"`
+	Price int    `json:"price" binding:"required"`
+}

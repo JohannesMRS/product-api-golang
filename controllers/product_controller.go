@@ -45,3 +45,21 @@ func (c *ProductController) CreateProduct(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{"Data": product})
 }
+
+func (c *ProductController) UpdateProduct(ctx *gin.Context) {
+	var input models.UpdateProductInput
+
+	if err := ctx.ShouldBindJSON(&input); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	product, err := c.service.UpdateProduct(input)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"Data": product})
+}

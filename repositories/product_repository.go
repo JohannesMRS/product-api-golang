@@ -8,6 +8,7 @@ import (
 type ProductRepository interface {
 	GetAll() ([]models.Product, error)
 	Create(product models.Product) (models.Product, error)
+	Update(product models.Product) (models.Product, error)
 }
 
 type productRepository struct {
@@ -43,6 +44,17 @@ func (r *productRepository) Create(product models.Product) (models.Product, erro
 	query := "INSERT INTO product (name, price) VALUES ($1, $2) RETURNING id, created_at"
 	err := r.db.QueryRow(query, product.Name, product.Price).Scan(&product.ID, &product.CreatedAt)
 
+	if err != nil {
+		return product, err
+	}
+
+	return product, nil
+}
+
+func (r *productRepository) Update(product models.Product) (models.Product, error) {
+	query := "UPDATE product SET name=$1, price=$2 WHERE id=$3"
+
+	err := r.db.QueryRow(query, product.Name, product.Price, product.ID).Scan(&product.ID, &product.CreatedAt)
 	if err != nil {
 		return product, err
 	}
