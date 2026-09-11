@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"strconv"
 
 	"manajemen-product/models"
 	"manajemen-product/services"
@@ -47,6 +48,16 @@ func (c *ProductController) CreateProduct(ctx *gin.Context) {
 }
 
 func (c *ProductController) UpdateProduct(ctx *gin.Context) {
+
+	idParam := ctx.Param("id")
+
+	id, err := strconv.Atoi(idParam)
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "ID tidak valid"})
+		return
+	}
+
 	var input models.UpdateProductInput
 
 	if err := ctx.ShouldBindJSON(&input); err != nil {
@@ -54,12 +65,15 @@ func (c *ProductController) UpdateProduct(ctx *gin.Context) {
 		return
 	}
 
-	product, err := c.service.UpdateProduct(input)
+	product, err := c.service.UpdateProduct(id, input)
 
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"Data": product})
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "Data berhasil diperbarui",
+		"data":    product,
+	})
 }

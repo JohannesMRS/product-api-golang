@@ -2,13 +2,14 @@ package repositories
 
 import (
 	"database/sql"
+	"errors"
 	"manajemen-product/models"
 )
 
 type ProductRepository interface {
 	GetAll() ([]models.Product, error)
 	Create(product models.Product) (models.Product, error)
-	Update(product models.Product) (models.Product, error)
+	Update(id int, product models.Product) (models.Product, error)
 }
 
 type productRepository struct {
@@ -51,11 +52,14 @@ func (r *productRepository) Create(product models.Product) (models.Product, erro
 	return product, nil
 }
 
-func (r *productRepository) Update(product models.Product) (models.Product, error) {
-	query := "UPDATE product SET name=$1, price=$2 WHERE id=$3"
+func (r *productRepository) Update(id int, product models.Product) (models.Product, error) {
+	query := "UPDATE product SET name=$1, price=$2 WHERE id=$3 RETURNING id, name, price, created_at"
 
-	err := r.db.QueryRow(query, product.Name, product.Price, product.ID).Scan(&product.ID, &product.CreatedAt)
+	err := r.db.QueryRow(query, product.Name, product.Price, id).Scan(&product.ID, &product.Name, &product.Price, &product.CreatedAt)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return product, errors.New("produk tidak ditemukan")
+		}
 		return product, err
 	}
 
