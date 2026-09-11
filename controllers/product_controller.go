@@ -77,3 +77,24 @@ func (c *ProductController) UpdateProduct(ctx *gin.Context) {
 		"data":    product,
 	})
 }
+
+func (c *ProductController) DeleteProduct(ctx *gin.Context) {
+	idParam := ctx.Param("id")
+	id, err := strconv.Atoi(idParam)
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err = c.service.DeleteProduct(id)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "Data berhasil dihapus",
+	})
+}

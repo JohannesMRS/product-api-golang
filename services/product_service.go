@@ -9,6 +9,7 @@ type ProductService interface {
 	GetAllProducts() ([]models.Product, error)
 	CreateProduct(input models.CreateProductInput) (models.Product, error)
 	UpdateProduct(id int, input models.UpdateProductInput) (models.Product, error)
+	DeleteProduct(id int) error
 }
 
 type productService struct {
@@ -39,4 +40,8 @@ func (s *productService) UpdateProduct(id int, input models.UpdateProductInput) 
 	}
 
 	return s.repo.Update(id, product)
+}
+
+func (s *productService) DeleteProduct(id int) error {
+	return s.repo.Delete(id)
 }

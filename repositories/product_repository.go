@@ -10,6 +10,7 @@ type ProductRepository interface {
 	GetAll() ([]models.Product, error)
 	Create(product models.Product) (models.Product, error)
 	Update(id int, product models.Product) (models.Product, error)
+	Delete(id int) error
 }
 
 type productRepository struct {
@@ -64,4 +65,21 @@ func (r *productRepository) Update(id int, product models.Product) (models.Produ
 	}
 
 	return product, nil
+}
+
+func (r *productRepository) Delete(id int) error {
+	query := "DELETE FROM product WHERE id = $1"
+
+	row, err := r.db.Exec(query, id)
+
+	affectedRow, err := row.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if affectedRow == 0 {
+		return errors.New("Data tidak ditemukan")
+	}
+
+	return nil
 }
