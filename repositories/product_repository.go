@@ -40,7 +40,7 @@ func (r *productRepository) GetAll() ([]models.Product, error) {
 }
 
 func (r *productRepository) Create(product models.Product) (models.Product, error) {
-	query := "INSERT INTO (name, price) VALUES ($1, $2) RETURNING id, created_at"
+	query := "INSERT INTO product (name, price) VALUES ($1, $2) RETURNING id, created_at"
 	err := r.db.QueryRow(query, product.Name, product.Price).Scan(&product.ID, &product.CreatedAt)
 
 	if err != nil {
