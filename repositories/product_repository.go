@@ -11,6 +11,7 @@ type ProductRepository interface {
 	Create(product models.Product) (models.Product, error)
 	Update(id int, product models.Product) (models.Product, error)
 	Delete(id int) error
+	FindById(id int) (models.Product, error)
 }
 
 type productRepository struct {
@@ -82,4 +83,20 @@ func (r *productRepository) Delete(id int) error {
 	}
 
 	return nil
+}
+
+func (r *productRepository) FindById(id int) (models.Product, error) {
+	query := "SELECT id, name, price, created_at FROM product WHERE id = $1"
+	var product models.Product
+	err := r.db.QueryRow(query, id).Scan(&product.ID, &product.Name, &product.Price, &product.CreatedAt)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return product, errors.New("Data tidak ditemukan")
+		}
+		return product, err
+	}
+
+	return product, nil
+
 }

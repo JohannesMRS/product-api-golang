@@ -34,6 +34,7 @@ func main() {
 	api := r.Group("api/v1")
 	{
 		api.GET("/products", productController.GetProducts)
+		api.GET("/products/:id", productController.FindById)
 		api.POST("/products", productController.CreateProduct)
 		api.PUT("/products/:id", productController.UpdateProduct)
 		api.DELETE("products/:id", productController.DeleteProduct)

@@ -98,3 +98,29 @@ func (c *ProductController) DeleteProduct(ctx *gin.Context) {
 		"message": "Data berhasil dihapus",
 	})
 }
+
+func (c *ProductController) FindById(ctx *gin.Context) {
+	idParam := ctx.Param("id")
+	id, err := strconv.Atoi(idParam)
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	product, err := c.service.FindById(id)
+
+	if err != nil {
+		if err.Error() == "Data tidak ditemukan" {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "Data ditemukan",
+		"data":    product,
+	})
+}
