@@ -1,9 +1,10 @@
 package repositories
 
 import (
-	"database/sql"
 	"errors"
 	"manajemen-product/models"
+
+	"gorm.io/gorm"
 )
 
 type ProductRepository interface {
@@ -15,70 +16,53 @@ type ProductRepository interface {
 }
 
 type productRepository struct {
-	db *sql.DB
+	db *gorm.DB
 }
 
-func NewProductRepository(db *sql.DB) ProductRepository {
+func NewProductRepository(db *gorm.DB) ProductRepository {
 	return &productRepository{db: db}
 }
 
+// Ambil semua data
 func (r *productRepository) GetAll() ([]models.Product, error) {
-	query := "SELECT id, name, price, created_at FROM product ORDER BY id DESC"
-	rows, err := r.db.Query(query)
-	if err != nil {
-		return nil, err
-	}
+	var product []models.Product
 
-	defer rows.Close()
+	err := r.db.Order("id desc").Find(&product).Error
 
-	var products []models.Product
-	for rows.Next() {
-		var p models.Product
-		if err := rows.Scan(&p.ID, &p.Name, &p.Price, &p.CreatedAt); err != nil {
-			return nil, err
-		}
-		products = append(products, p)
-	}
-
-	return products, nil
+	return product, err
 }
 
 func (r *productRepository) Create(product models.Product) (models.Product, error) {
-	query := "INSERT INTO product (name, price) VALUES ($1, $2) RETURNING id, created_at"
-	err := r.db.QueryRow(query, product.Name, product.Price).Scan(&product.ID, &product.CreatedAt)
-
-	if err != nil {
-		return product, err
-	}
-
-	return product, nil
+	err := r.db.Create(&product).Error
+	return product, err
 }
 
 func (r *productRepository) Update(id int, product models.Product) (models.Product, error) {
-	query := "UPDATE product SET name=$1, price=$2 WHERE id=$3 RETURNING id, name, price, created_at"
+	var existingProduct models.Product
 
-	err := r.db.QueryRow(query, product.Name, product.Price, id).Scan(&product.ID, &product.Name, &product.Price, &product.CreatedAt)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return product, errors.New("produk tidak ditemukan")
+	if err := r.db.First(&existingProduct, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return product, errors.New("Data tidak ditemukan")
 		}
 		return product, err
 	}
 
-	return product, nil
+	err := r.db.Model(&existingProduct).Updates(product).Error
+
+	if err != nil {
+		return existingProduct, err
+	}
+
+	return existingProduct, nil
 }
 
 func (r *productRepository) Delete(id int) error {
-	query := "DELETE FROM product WHERE id = $1"
-
-	row, err := r.db.Exec(query, id)
-
-	affectedRow, err := row.RowsAffected()
-	if err != nil {
-		return err
+	result := r.db.Delete(&models.Product{}, id)
+	if result.Error != nil {
+		return result.Error
 	}
 
-	if affectedRow == 0 {
+	if result.RowsAffected == 0 {
 		return errors.New("Data tidak ditemukan")
 	}
 
@@ -86,17 +70,16 @@ func (r *productRepository) Delete(id int) error {
 }
 
 func (r *productRepository) FindById(id int) (models.Product, error) {
-	query := "SELECT id, name, price, created_at FROM product WHERE id = $1"
 	var product models.Product
-	err := r.db.QueryRow(query, id).Scan(&product.ID, &product.Name, &product.Price, &product.CreatedAt)
+
+	err := r.db.First(&product, id).Error
 
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return product, errors.New("Data tidak ditemukan")
 		}
 		return product, err
 	}
 
 	return product, nil
-
 }

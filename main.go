@@ -6,6 +6,7 @@ import (
 
 	"manajemen-product/config"
 	"manajemen-product/controllers"
+	"manajemen-product/models"
 	"manajemen-product/repositories"
 	"manajemen-product/services"
 
@@ -21,9 +22,14 @@ func main() {
 	// koneksi database
 	db, err := config.ConnectDB()
 	if err != nil {
-		log.Fatalf("Gagal koneksi ke database; %v", err)
+		log.Fatalf("Gagal koneksi ke database: %v", err)
 	}
-	defer db.Close()
+
+	err = db.AutoMigrate(&models.Product{})
+
+	if err != nil {
+		log.Fatalf("Gagal melakukan migrasi: %v", err)
+	}
 
 	productRepo := repositories.NewProductRepository(db)
 	productService := services.NewProductService(productRepo)
